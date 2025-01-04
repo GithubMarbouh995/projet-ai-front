@@ -2,6 +2,8 @@ pipeline {
     agent any
     environment {
         VERCEL_TOKEN = credentials('vercel-token')
+        NODE_PATH = 'C:\\Program Files\\nodejs'
+        NPM_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\npm'
     }
     stages {
         stage('Checkout from GitHub') {
@@ -13,25 +15,33 @@ pipeline {
                 )
             }
         }
-        stage('Install Node.js') {
+
+        stage('Prepare NPM Environment') {
             steps {
-                bat 'choco install nodejs-lts -y'
+                script {
+                    bat '''
+                        if not exist "C:\\ProgramData\\Jenkins\\.jenkins\\npm" mkdir "C:\\ProgramData\\Jenkins\\.jenkins\\npm"
+                        npm config set prefix "C:\\ProgramData\\Jenkins\\.jenkins\\npm"
+                        set PATH=%NODE_PATH%;C:\\ProgramData\\Jenkins\\.jenkins\\npm;%PATH%
+                    '''
+                }
             }
         }
-        stage('Configure Jenkins Node') {
-            steps {
-                // Ajoutez ici les commandes nécessaires pour configurer manuellement le nœud Jenkins
-                bat 'echo Configuration du nœud Jenkins'
-            }
-        }
+
         stage('Vercel Deploy') {
             steps {
-                bat 'for /f "tokens=*" %%i in (\'npm config get prefix\') do set npm_prefix=%%i'
-                bat 'setx PATH "%npm_prefix%\\npm"'
-                bat 'setx PATH "%PATH%;%npm_prefix%\\npm"'
-                bat "npm install -g vercel"
-                bat "vercel --version" // Vérifiez que Vercel est bien installé
-                bat "vercel --token %VERCEL_TOKEN% --confirm --prod"
+                script {
+                    bat '''
+                        echo Installation de Vercel
+                        npm install -g vercel
+
+                        echo Vérification de l'installation
+                        "C:\\ProgramData\\Jenkins\\.jenkins\\npm\\vercel.cmd" -v
+
+                        echo Déploiement
+                        "C:\\ProgramData\\Jenkins\\.jenkins\\npm\\vercel.cmd" --token %VERCEL_TOKEN% --confirm --prod
+                    '''
+                }
             }
         }
     }
