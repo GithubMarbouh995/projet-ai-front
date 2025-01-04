@@ -17,7 +17,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                script {
                     dockerImage = docker.build("my-angular-app:${env.BUILD_NUMBER}")
+                }
             }
         }
         stage('Push Docker Image') {
