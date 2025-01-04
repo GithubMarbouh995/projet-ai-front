@@ -15,12 +15,14 @@ pipeline {
         }
         stage('Vercel Deploy') {
             steps {
-              sh 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
-              sh '. ~/.nvm/nvm.sh'
-              sh 'nvm install --lts'
-              sh 'export PATH="$PATH:$(npm config get prefix)/bin"'
-              sh 'npm install -g vercel'
-              sh 'vercel --token $VERCEL_TOKEN --confirm --prod'
+              sh """
+                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                . ~/.nvm/nvm.sh
+                nvm install --lts
+                export PATH="\$PATH:\$(npm config get prefix)/bin"
+                npm install -g vercel
+                vercel --token \$VERCEL_TOKEN --confirm --prod
+              """
             }
         }
     }
