@@ -7,26 +7,17 @@ pipeline {
     stages {
         stage('Checkout from GitHub') {
             steps {
-                script {
-                  //Supprime le repertoire s'il existe deja
-                    if (fileExists('projet-ai-front')) {
-                        deleteDir()
-                    }
-                    // Récupérer le code depuis GitHub
-                    git(
-                        url: 'https://github.com/GithubMarbouh995/projet-ai-front.git', // Remplacez par l'URL de votre dépôt
-                        branch: 'main', // Remplacez par votre branche, si nécessaire (ex: develop)
-                        // credentialsId: 'github-credentials' // Remplacez par l'ID de vos identifiants GitHub
+                deleteDir()
+                 git(
+                        url: 'https://github.com/GithubMarbouh995/projet-ai-front.git',
+                        branch: 'main'
                     )
-                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
                     dockerImage = docker.build("my-angular-app:${env.BUILD_NUMBER}")
-                }
             }
         }
         stage('Push Docker Image') {
