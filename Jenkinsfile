@@ -12,42 +12,33 @@ pipeline {
                         echo Installation de Vercel
                         npm install -g vercel
 
-                        echo Vérification de l'installation
-                        "${NPM_PATH}\\vercel.cmd" -v || exit 1
-
                         echo Déploiement sur Vercel
                         cd %WORKSPACE%
-                        "${NPM_PATH}\\vercel.cmd" --token %VERCEL_TOKEN% --confirm --prod > vercel_output.txt 2>&1
-                        if %ERRORLEVEL% NEQ 0 (
-                            echo Erreur de déploiement
-                            type vercel_output.txt
-                            exit 1
-                        )
+                        "${NPM_PATH}\\vercel.cmd" deploy --token %VERCEL_TOKEN% --prod > vercel_deploy.log
 
-                        echo Extraction URL
-                        findstr /C:"Production:" vercel_output.txt > deployment_url.txt
-                        if not exist deployment_url.txt (
-                            echo URL non trouvée
-                            exit 1
-                        )
+                        echo Capture de l'URL
+                        findstr "Production URL" vercel_deploy.log > url.txt
 
-                        echo URL du déploiement:
-                        type deployment_url.txt
+                        echo URL de déploiement:
+                        type url.txt
+
+                        echo Sauvegarde des fichiers
+                        copy url.txt deployment_url.txt
+                        copy vercel_deploy.log vercel_output.txt
                     """
 
-                    archiveArtifacts artifacts: 'deployment_url.txt,vercel_output.txt', allowEmptyArchive: true
+                    def deployUrl = readFile('url.txt').trim()
+                    echo "URL de déploiement: ${deployUrl}"
+
+                    archiveArtifacts artifacts: '**/url.txt,**/vercel_deploy.log', allowEmptyArchive: true
                 }
             }
-            post {
-                always {
-                    script {
-                        if (fileExists('deployment_url.txt')) {
-                            echo "URL de déploiement:"
-                            bat 'type deployment_url.txt'
-                        }
-                    }
-                }
-            }
+        }
+    }
+    post {
+        success {
+            echo '=== URL de Production ==='
+            bat 'type url.txt'
         }
     }
 }
