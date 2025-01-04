@@ -2,11 +2,10 @@ pipeline {
     agent any
     environment {
         VERCEL_TOKEN = credentials('vercel-token')
-        NODE_PATH = 'C:\\Program Files\\nodejs'
         NPM_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\npm'
     }
     stages {
-       stage('Checkout from GitHub') {
+        stage('Checkout from GitHub') {
             steps {
                 deleteDir()
                 git(
@@ -18,37 +17,28 @@ pipeline {
         stage('Vercel Deploy') {
             steps {
                 script {
-                    bat '''
+                    // Installation et déploiement Vercel
+                    bat """
                         echo Installation de Vercel
                         npm install -g vercel
 
+                        echo Vérification de l'installation
+                        "${NPM_PATH}\\vercel.cmd" --version
+
                         echo Déploiement
-                        vercel --token %VERCEL_TOKEN% --confirm --prod > deployment_url.txt
+                        "${NPM_PATH}\\vercel.cmd" --token %VERCEL_TOKEN% --confirm --prod > vercel_output.txt 2>&1
 
-                        echo URL du déploiement:
+                        echo Création du fichier deployment_url
+                        type vercel_output.txt | findstr "Production" > deployment_url.txt
+
+                        echo Contenu du fichier deployment_url.txt:
                         type deployment_url.txt
-                    '''
+                    """
 
-                    // Vérifiez si le fichier deployment_url.txt existe
-                    bat '''
-                        if exist deployment_url.txt (
-                            echo Le fichier deployment_url.txt a été créé avec succès.
-                        ) else (
-                            echo Le fichier deployment_url.txt n'a pas été créé.
-                            exit 1
-                        )
-                    '''
-
-                    // Archiver l'URL du déploiement
-                    archiveArtifacts artifacts: 'deployment_url.txt', allowEmptyArchive: true
+                    // Archivage des artifacts
+                    archiveArtifacts artifacts: '**/*_url.txt', allowEmptyArchive: true
                 }
             }
-        }
-    }
-    post {
-        success {
-            echo 'Application déployée avec succès! Accédez à votre application sur:'
-            bat 'type deployment_url.txt'
         }
     }
 }
