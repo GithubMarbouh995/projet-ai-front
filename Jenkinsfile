@@ -30,6 +30,7 @@ pipeline {
                 bat 'setx PATH "%npm_prefix%\\npm"'
                 bat 'setx PATH "%PATH%;%npm_prefix%\\npm"'
                 bat "npm install -g vercel"
+                bat "vercel --version" // Vérifiez que Vercel est bien installé
                 bat "vercel --token %VERCEL_TOKEN% --confirm --prod"
             }
         }
