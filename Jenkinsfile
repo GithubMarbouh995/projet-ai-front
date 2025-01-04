@@ -7,19 +7,19 @@ pipeline {
         stage('Checkout from GitHub') {
             steps {
                 deleteDir()
-                 git(
-                        url: 'https://github.com/GithubMarbouh995/projet-ai-front.git',
-                        branch: 'main'
-                    )
+                git(
+                    url: 'https://github.com/GithubMarbouh995/projet-ai-front.git',
+                    branch: 'main'
+                )
             }
         }
-         stage('Vercel Deploy') {
+        stage('Vercel Deploy') {
             steps {
-             bat 'echo %PATH%'
-             bat 'for /f "tokens=*" %%i in (\'npm config get prefix\') do set npm_prefix=%%i'
-             bat 'setx PATH "%PATH%;%npm_prefix%\\npm"'
-             bat "npm install -g vercel"
-             bat "vercel --token %VERCEL_TOKEN% --confirm --prod"
+                bat 'for /f "tokens=*" %%i in (\'npm config get prefix\') do set npm_prefix=%%i'
+                bat 'setx PATH "%npm_prefix%\\npm"'
+                bat 'setx PATH "%PATH%;%npm_prefix%\\npm"'
+                bat "npm install -g vercel"
+                bat "vercel --token %VERCEL_TOKEN% --confirm --prod"
             }
         }
     }
