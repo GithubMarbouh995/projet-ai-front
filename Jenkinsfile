@@ -15,8 +15,10 @@ pipeline {
         }
         stage('Vercel Deploy') {
             steps {
-                sh 'echo $PATH'
-                sh 'export PATH="$PATH:$(npm config get prefix)/bin"'
+               sh 'sudo apt update'
+               sh 'sudo apt install -y nodejs npm'
+               sh 'echo $PATH'
+               sh 'export PATH="$PATH:$(npm config get prefix)/bin"'
                 sh "npm install -g vercel"
                 sh "vercel --token $VERCEL_TOKEN --confirm --prod"
             }
