@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         VERCEL_TOKEN = credentials('vercel-token')
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+       
     }
     stages {
         stage('Checkout from GitHub') {
