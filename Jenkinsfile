@@ -5,42 +5,47 @@ pipeline {
         NPM_PATH = 'C:\\ProgramData\\Jenkins\\.jenkins\\npm'
     }
     stages {
-        stage('Checkout from GitHub') {
-            steps {
-                deleteDir()
-                git(
-                    url: 'https://github.com/GithubMarbouh995/projet-ai-front.git',
-                    branch: 'main'
-                )
-            }
-        }
         stage('Vercel Deploy') {
             steps {
                 script {
-                    bat '''
+                    bat """
                         echo Installation de Vercel
                         npm install -g vercel
 
+                        echo Vérification de l'installation
+                        "${NPM_PATH}\\vercel.cmd" -v || exit 1
+
                         echo Déploiement sur Vercel
                         cd %WORKSPACE%
-                        "%NPM_PATH%\\vercel.cmd" deploy --token %VERCEL_TOKEN% --prod > vercel_deploy.log 2>&1
+                        "${NPM_PATH}\\vercel.cmd" --token %VERCEL_TOKEN% --confirm --prod > vercel_output.txt 2>&1
+                        if %ERRORLEVEL% NEQ 0 (
+                            echo Erreur de déploiement
+                            type vercel_output.txt
+                            exit 1
+                        )
 
-                        echo Extraction URL de déploiement
-                        findstr /C:"Preview:" vercel_deploy.log > url.txt
-                        findstr /C:"Production:" vercel_deploy.log >> url.txt
+                        echo Extraction URL
+                        findstr /C:"Production:" vercel_output.txt > deployment_url.txt
+                        if not exist deployment_url.txt (
+                            echo URL non trouvée
+                            exit 1
+                        )
 
-                        echo URL de déploiement:
-                        type url.txt
-                    '''
+                        echo URL du déploiement:
+                        type deployment_url.txt
+                    """
 
-                    // Archivage des URLs
-                    archiveArtifacts artifacts: 'url.txt,vercel_deploy.log', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'deployment_url.txt,vercel_output.txt', allowEmptyArchive: true
                 }
             }
             post {
-                success {
-                    echo 'URL de déploiement :'
-                    bat 'type url.txt'
+                always {
+                    script {
+                        if (fileExists('deployment_url.txt')) {
+                            echo "URL de déploiement:"
+                            bat 'type deployment_url.txt'
+                        }
+                    }
                 }
             }
         }
