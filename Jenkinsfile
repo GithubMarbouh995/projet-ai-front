@@ -15,7 +15,7 @@ pipeline {
                         npm install -g vercel
 
                         echo Déploiement
-                        "C:\\ProgramData\\Jenkins\\.jenkins\\npm\\vercel.cmd" --token %VERCEL_TOKEN% --confirm --prod > deployment_url.txt
+                        vercel --token %VERCEL_TOKEN% --confirm --prod > deployment_url.txt
 
                         echo URL du déploiement:
                         type deployment_url.txt
