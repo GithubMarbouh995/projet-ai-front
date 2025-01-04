@@ -18,6 +18,12 @@ pipeline {
                 bat 'choco install nodejs-lts -y'
             }
         }
+        stage('Configure Jenkins Node') {
+            steps {
+                // Ajoutez ici les commandes nécessaires pour configurer manuellement le nœud Jenkins
+                bat 'echo Configuration du nœud Jenkins'
+            }
+        }
         stage('Vercel Deploy') {
             steps {
                 bat 'for /f "tokens=*" %%i in (\'npm config get prefix\') do set npm_prefix=%%i'
