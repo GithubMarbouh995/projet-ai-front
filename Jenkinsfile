@@ -17,26 +17,30 @@ pipeline {
         stage('Vercel Deploy') {
             steps {
                 script {
-                    // Installation et déploiement Vercel
-                    bat """
+                    bat '''
                         echo Installation de Vercel
                         npm install -g vercel
 
-                        echo Vérification de l'installation
-                        "${NPM_PATH}\\vercel.cmd" --version
+                        echo Déploiement sur Vercel
+                        cd %WORKSPACE%
+                        "%NPM_PATH%\\vercel.cmd" deploy --token %VERCEL_TOKEN% --prod > vercel_deploy.log 2>&1
 
-                        echo Déploiement
-                        "${NPM_PATH}\\vercel.cmd" --token %VERCEL_TOKEN% --confirm --prod > vercel_output.txt 2>&1
+                        echo Extraction URL de déploiement
+                        findstr /C:"Preview:" vercel_deploy.log > url.txt
+                        findstr /C:"Production:" vercel_deploy.log >> url.txt
 
-                        echo Création du fichier deployment_url
-                        type vercel_output.txt | findstr "Production" > deployment_url.txt
+                        echo URL de déploiement:
+                        type url.txt
+                    '''
 
-                        echo Contenu du fichier deployment_url.txt:
-                        type deployment_url.txt
-                    """
-
-                    // Archivage des artifacts
-                    archiveArtifacts artifacts: '**/*_url.txt', allowEmptyArchive: true
+                    // Archivage des URLs
+                    archiveArtifacts artifacts: 'url.txt,vercel_deploy.log', allowEmptyArchive: true
+                }
+            }
+            post {
+                success {
+                    echo 'URL de déploiement :'
+                    bat 'type url.txt'
                 }
             }
         }
